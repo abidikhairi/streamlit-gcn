@@ -23,7 +23,7 @@ elif dataset == 'karate club':
 with st.container() as container:
     st.title('GCN Hyper-Parameters')
     nhid = st.slider('Number of hidden units', 8, 64, 1)
-    dropout = st.slider('Dropout', 0.0, 1.0, 0.1)
+    dropout = st.slider('Dropout rate', 0.0, 1.0, 0.5)
     lr = st.number_input('Learning rate', 0.01, 0.1, 0.05)
     epochs = st.number_input('Number of training epochs', 1, 100, 1)
 
@@ -49,18 +49,26 @@ if train:
         pbar.progress(epoch / epochs)
     model.eval()
 
-    pbar.text('Training finished')
     preds = F.log_softmax(model(data.edge_index, data.x), dim=1)[data.test_mask]
     accuracy = thm.accuracy(preds, data.y[data.test_mask])
     st.write(f'Accuracy: {accuracy * 100:.2f}%')
+
+    st.header('Learned Embedding Visualization')
     h = model(data.edge_index, data.x).detach().numpy()
     x = TSNE(n_components=2).fit_transform(h)
     fig, ax = plt.subplots(figsize=(8, 4))
     ax.scatter(x[:, 0], x[:, 1], c=data.y.numpy(), cmap='Paired', s=5)
+    
+    # Turn off tick labels
+    ax.set_yticklabels([])
+    ax.set_xticklabels([])
+    
     st.pyplot(fig)
+
 
 if feature_extractor:
     from model import FeatureExtractorGCN
+    st.header('Random Embedding Visualization')
     model = FeatureExtractorGCN(data.num_features)
     model.eval()
 
@@ -68,4 +76,5 @@ if feature_extractor:
 
     fig, ax = plt.subplots(figsize=(8, 4))
     ax.scatter(h[:, 0], h[:, 1], c=data.y.numpy(), s=5, cmap='Paired')
+
     st.pyplot(fig)
