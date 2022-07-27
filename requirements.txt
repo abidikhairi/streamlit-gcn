@@ -8,3 +8,4 @@ torch-spline-conv
 torch-geometric
 torchmetrics
 matplotlib
+scikit-learn
