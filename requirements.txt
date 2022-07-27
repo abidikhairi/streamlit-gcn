@@ -9,3 +9,4 @@ torch-geometric
 torchmetrics
 matplotlib
 scikit-learn
+networkx
