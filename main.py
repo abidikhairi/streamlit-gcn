@@ -1,11 +1,9 @@
 import streamlit as st
 import torch as th
-import networkx as nx
 import matplotlib.pyplot as plt
 import torchmetrics.functional as thm
 import torch.nn.functional as F
 from datasets import load_cora, load_karate_club
-from torch_geometric.utils import to_networkx
 from sklearn.manifold import TSNE
 from model import GCN
 
