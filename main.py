@@ -2,6 +2,7 @@ import streamlit as st
 import torch as th
 import networkx as nx
 import matplotlib.pyplot as plt
+import torchmetrics.functional as thm
 import torch.nn.functional as F
 from datasets import load_cora, load_karate_club
 from torch_geometric.utils import to_networkx
@@ -20,19 +21,19 @@ elif dataset == 'karate club':
 
 
 with st.container() as container:
-   st.title('GCN Hyper-Parameters')
-   nhid = st.slider('Number of hidden units', 8, 64, 1)
-   lr = st.number_input('Learning rate', 0.01, 0.1, 0.05)
-   epochs = st.number_input('Number of training epochs', 1, 100, 1)
+    st.title('GCN Hyper-Parameters')
+    nhid = st.slider('Number of hidden units', 8, 64, 1)
+    dropout = st.slider('Dropout', 0.0, 1.0, 0.1)
+    lr = st.number_input('Learning rate', 0.01, 0.1, 0.05)
+    epochs = st.number_input('Number of training epochs', 1, 100, 1)
 
-   train = st.button('Train')
-   feature_extractor = st.button('Use Randomly Initialized GCN')
-
+    train = st.button('Train')
+    feature_extractor = st.button('Use Randomly Initialized GCN')
 
 if train:
-    st.header('Running training')
+    st.header('Training 2-layer GCN')
     nclass = data.y.max().item() + 1
-    model = GCN(data.num_features, nhid, nclass)
+    model = GCN(data.num_features, nhid, nclass, dropout)
     optimizer = th.optim.Adam(model.parameters(), lr=lr, weight_decay=5e-4)
     
     model.train()
@@ -46,10 +47,12 @@ if train:
         loss.backward()        
         optimizer.step()
         pbar.progress(epoch / epochs)
+    model.eval()
 
     pbar.text('Training finished')
-
-    model.eval()
+    preds = F.log_softmax(model(data.edge_index, data.x), dim=1)[data.test_mask]
+    accuracy = thm.accuracy(preds, data.y[data.test_mask])
+    st.write(f'Accuracy: {accuracy * 100:.2f}%')
     h = model(data.edge_index, data.x).detach().numpy()
     x = TSNE(n_components=2).fit_transform(h)
     fig, ax = plt.subplots(figsize=(8, 4))
