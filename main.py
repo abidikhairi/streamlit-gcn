@@ -19,27 +19,15 @@ elif dataset == 'karate club':
     data = load_karate_club()
 
 
-with st.container():
-    col1, col2 = st.columns(2)
-    with col1:
-        col1.title(f'Graph {dataset}')
-        graph = to_networkx(data).to_undirected()
+with st.container() as container:
+   st.title('GCN Hyper-Parameters')
+   nhid = st.slider('Number of hidden units', 8, 64, 1)
+   lr = st.number_input('Learning rate', 0.01, 0.1, 0.05)
+   epochs = st.number_input('Number of training epochs', 1, 100, 1)
 
-        fig, ax = plt.subplots(figsize=(10, 10))
+   train = st.button('Train')
+   feature_extractor = st.button('Use Randomly Initialized GCN')
 
-        nx.draw(graph, ax=ax, node_size=100, node_color=data.y.numpy(), cmap='Paired')
-
-        st.pyplot(fig)
-    
-    with col2:
-        col2.title('GCN Hyper-Parameters')
-
-        nhid = st.slider('Number of hidden units', 8, 64, 1)
-        lr = st.number_input('Learning rate', 0.01, 0.1, 0.05)
-        epochs = st.number_input('Number of training epochs', 1, 100, 1)
-
-        train = st.button('Train')
-        feature_extractor = st.button('Use Randomly Initialized GCN')
 
 if train:
     st.header('Running training')
@@ -65,7 +53,7 @@ if train:
     h = model(data.edge_index, data.x).detach().numpy()
     x = TSNE(n_components=2).fit_transform(h)
     fig, ax = plt.subplots(figsize=(8, 4))
-    ax.scatter(x[:, 0], x[:, 1], c=data.y.numpy(), cmap='Paired')
+    ax.scatter(x[:, 0], x[:, 1], c=data.y.numpy(), cmap='Paired', s=5)
     st.pyplot(fig)
 
 if feature_extractor:
@@ -76,5 +64,5 @@ if feature_extractor:
     h = model(data.edge_index, data.x).detach().numpy()
 
     fig, ax = plt.subplots(figsize=(8, 4))
-    ax.scatter(h[:, 0], h[:, 1], c=data.y.numpy(), s=20, cmap='Paired')
+    ax.scatter(h[:, 0], h[:, 1], c=data.y.numpy(), s=5, cmap='Paired')
     st.pyplot(fig)
